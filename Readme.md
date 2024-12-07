@@ -1,0 +1,1 @@
+# Configuracion para balancear carga en dos nodos de wso2 Api manager

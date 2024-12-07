@@ -1,0 +1,101 @@
+version: '3.8'
+services:
+  database:
+    image: postgres:15.2
+    container_name: database_container
+    environment:
+      POSTGRES_USER: admon
+      POSTGRES_PASSWORD: acuario248
+      POSTGRES_DB: postgress
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+      - ./config/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+    ports:
+      - "5432:5432"
+    networks:
+      - apim_network
+
+  apim1:
+    depends_on:
+      - database
+    image: wso2/wso2am:4.3.0
+    container_name: apim_nodo1
+    volumes:
+      - ./config/deployment.toml:/home/wso2carbon/wso2am-4.3.0/repository/conf/deployment.toml
+      - ./drivers:/home/wso2carbon/wso2am-4.3.0/repository/components/lib
+      - ./logs/apim1:/home/wso2carbon/wso2am-4.3.0/repository/logs
+      - ./security:/home/wso2carbon/wso2am-4.3.0/repository/resources/security
+    ports:
+      - "9443:9443"
+      - "8243:8243"
+      - "9763:9763"
+    environment:
+      JAVA_OPTS: -Duser.timezone=GMT
+    networks:
+      apim_network:
+        aliases:
+          - openbanking
+          - gw.openbanking
+    restart: always
+
+  apim2:
+    depends_on:
+      - apim1
+    image: wso2/wso2am:4.3.0
+    container_name: apim_nodo2
+    volumes:
+      - ./config/deployment.toml:/home/wso2carbon/wso2am-4.3.0/repository/conf/deployment.toml
+      - ./drivers:/home/wso2carbon/wso2am-4.3.0/repository/components/lib
+      - ./logs/apim2:/home/wso2carbon/wso2am-4.3.0/repository/logs
+      - ./security:/home/wso2carbon/wso2am-4.3.0/repository/resources/security
+      - ./wait-for-it.sh:/usr/local/bin/wait-for-it.sh
+    ports:
+      - "9444:9443"
+      - "8244:8243"
+      - "9764:9763"
+    environment:
+      JAVA_OPTS: -Duser.timezone=GMT
+    networks:
+      apim_network:
+        aliases:
+          - openbanking
+          - gw.openbanking
+    restart: always
+    entrypoint: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh apim_nodo1 9443 && /home/wso2carbon/wso2am-4.3.0/bin/api-manager.sh"]
+
+  balanceador:
+    depends_on:
+      - apim2
+    image: nginx:mainline-otel
+    container_name: nginx_container
+    volumes:
+      - ./nginxssl:/etc/nginx/ssl
+      - ./nginxconfig:/etc/nginx/conf.d
+      - ./wait-for-it.sh:/usr/local/bin/wait-for-it.sh
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      apim_network:
+        aliases:
+          - openbanking
+          - gw.openbanking
+    restart: always
+    entrypoint: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh apim_nodo2 8243 'nginx -g \"daemon off;\"'"]
+
+  usuarioapi:
+    image: usuariorest
+    container_name: usuariorest_container
+    environment:
+      DB_HOST: database_container
+      DB_USER: admon
+      DB_PASSWORD: acuario248
+    ports:
+      - "8080:8080"
+    networks:
+      - apim_network
+    restart: always
+
+networks:
+  apim_network:
+    driver: bridge
