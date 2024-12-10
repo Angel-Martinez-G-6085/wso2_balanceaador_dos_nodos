@@ -5,7 +5,7 @@ services:
     container_name: database_container
     environment:
       POSTGRES_USER: admon
-      POSTGRES_PASSWORD: acuario248
+      POSTGRES_PASSWORD: password
       POSTGRES_DB: postgress
     volumes:
       - ./db_data:/var/lib/postgresql/data
@@ -82,19 +82,6 @@ services:
           - gw.openbanking
     restart: always
     entrypoint: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh apim_nodo2 8243 'nginx -g \"daemon off;\"'"]
-
-  usuarioapi:
-    image: usuariorest
-    container_name: usuariorest_container
-    environment:
-      DB_HOST: database_container
-      DB_USER: admon
-      DB_PASSWORD: acuario248
-    ports:
-      - "8080:8080"
-    networks:
-      - apim_network
-    restart: always
 
 networks:
   apim_network:
