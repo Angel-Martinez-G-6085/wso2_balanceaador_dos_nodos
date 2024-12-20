@@ -5,11 +5,10 @@ services:
     container_name: database_container
     environment:
       POSTGRES_USER: admon
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: acuario248
       POSTGRES_DB: postgress
     volumes:
       - ./db_data:/var/lib/postgresql/data
-      - ./config/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
     ports:
       - "5432:5432"
     networks:
@@ -81,7 +80,7 @@ services:
           - openbanking
           - gw.openbanking
     restart: always
-    entrypoint: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh apim_nodo2 8243 'nginx -g \"daemon off;\"'"]
+    entrypoint: ["/bin/sh", "-c", "/usr/local/bin/wait-for-it.sh apim_nodo1 9443 'nginx -g \"daemon off;\"'"]
 
 networks:
   apim_network:
