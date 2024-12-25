@@ -24,10 +24,6 @@ services:
       - ./drivers:/home/wso2carbon/wso2am-4.3.0/repository/components/lib
       - ./logs/apim1:/home/wso2carbon/wso2am-4.3.0/repository/logs
       - ./security:/home/wso2carbon/wso2am-4.3.0/repository/resources/security
-    ports:
-      - "9443:9443"
-      - "8243:8243"
-      - "9763:9763"
     environment:
       JAVA_OPTS: -Duser.timezone=GMT
     networks:
@@ -48,10 +44,6 @@ services:
       - ./logs/apim2:/home/wso2carbon/wso2am-4.3.0/repository/logs
       - ./security:/home/wso2carbon/wso2am-4.3.0/repository/resources/security
       - ./wait-for-it.sh:/usr/local/bin/wait-for-it.sh
-    ports:
-      - "9444:9443"
-      - "8244:8243"
-      - "9764:9763"
     environment:
       JAVA_OPTS: -Duser.timezone=GMT
     networks:
